@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Titles</title>
+</head>
+<body>
+    <h1>Generated Product Titles</h1>
+    <ul id="product-titles"></ul>
+
+    <script>
+        const words = [
+            "Pria",
+            "Tebal",
+            "Wanita",
+            "Putih",
+            "Hitam",
+            "Old school",
+            "Stripe",
+            "Motif",
+            "Tribal"
+        ];
+
+        function generateTitles(words) {
+            let titles = [];
+            for (let i = 0; i < words.length; i++) {
+                for (let j = i + 1; j < words.length; j++) {
+                    let title = `Kaos kaki ${words[i]} ${words[j]}`;
+                    titles.push(title);
+                }
+            }
+            return titles;
+        }
+
+        function displayTitles(titles) {
+            const listElement = document.getElementById('product-titles');
+            titles.forEach(title => {
+                let listItem = document.createElement('li');
+                listItem.textContent = title;
+                listElement.appendChild(listItem);
+            });
+        }
+
+        const productTitles = generateTitles(words);
+        displayTitles(productTitles);
+    </script>
+</body>
+</html>
