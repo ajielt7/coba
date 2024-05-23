@@ -22,14 +22,36 @@
             "Tribal"
         ];
 
-        function generateTitles(words) {
-            let titles = [];
-            for (let i = 0; i < words.length; i++) {
-                for (let j = i + 1; j < words.length; j++) {
-                    let title = `Kaos kaki ${words[i]} ${words[j]}`;
-                    titles.push(title);
+        function generatePermutations(arr) {
+            let result = [];
+
+            if (arr.length === 0) return [[]];
+
+            for (let i = 0; i < arr.length; i++) {
+                const current = arr[i];
+                const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+                const remainingPermutations = generatePermutations(remaining);
+                for (let permutation of remainingPermutations) {
+                    result.push([current].concat(permutation));
                 }
             }
+
+            return result;
+        }
+
+        function generateTitles(permutations) {
+            let titles = [];
+            permutations.forEach(permutation => {
+                let title = "Kaos kaki " + permutation[0] + " " + permutation[1];
+                for (let i = 2; i < permutation.length; i += 2) {
+                    if (i + 1 < permutation.length) {
+                        title += ", Kaos kaki " + permutation[i] + " " + permutation[i + 1];
+                    } else {
+                        title += ", Kaos kaki " + permutation[i];
+                    }
+                }
+                titles.push(title);
+            });
             return titles;
         }
 
@@ -42,7 +64,8 @@
             });
         }
 
-        const productTitles = generateTitles(words);
+        const permutations = generatePermutations(words);
+        const productTitles = generateTitles(permutations);
         displayTitles(productTitles);
     </script>
 </body>
