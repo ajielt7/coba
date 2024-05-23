@@ -3,70 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Titles</title>
+    <title>Judul Produk Kaos Kaki</title>
 </head>
 <body>
-    <h1>Generated Product Titles</h1>
-    <ul id="product-titles"></ul>
+    <h1>Judul Produk Kaos Kaki</h1>
+    <div id="product-titles"></div>
 
     <script>
-        const words = [
-            "Pria",
-            "Tebal",
-            "Wanita",
-            "Putih",
-            "Hitam",
-            "Old school",
-            "Stripe",
-            "Motif",
-            "Tribal"
+        const elements = [
+            "Pria", "Tebal", "Wanita", "Putih", "Hitam", 
+            "Old School", "Stripe", "Motif Tribal"
         ];
 
-        function generatePermutations(arr) {
-            let result = [];
-
-            if (arr.length === 0) return [[]];
-
-            for (let i = 0; i < arr.length; i++) {
-                const current = arr[i];
-                const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
-                const remainingPermutations = generatePermutations(remaining);
-                for (let permutation of remainingPermutations) {
-                    result.push([current].concat(permutation));
+        function generateTitles(elements) {
+            const titles = [];
+            function permute(arr, m = []) {
+                if (m.length === elements.length) {
+                    const title = "Kaos Kaki " + m.join(" ");
+                    titles.push(title);
+                    return;
+                }
+                for (let i = 0; i < arr.length; i++) {
+                    const curr = arr.slice();
+                    const next = curr.splice(i, 1);
+                    permute(curr.slice(), m.concat(next));
                 }
             }
-
-            return result;
-        }
-
-        function generateTitles(permutations) {
-            let titles = [];
-            permutations.forEach(permutation => {
-                let title = "";
-                for (let i = 0; i < permutation.length; i += 2) {
-                    if (i + 1 < permutation.length) {
-                        title += `Kaos kaki ${permutation[i]} ${permutation[i + 1]} `;
-                    } else {
-                        title += `Kaos kaki ${permutation[i]}`;
-                    }
-                }
-                titles.push(title.trim());
-            });
+            permute(elements);
             return titles;
         }
 
         function displayTitles(titles) {
-            const listElement = document.getElementById('product-titles');
+            const container = document.getElementById('product-titles');
             titles.forEach(title => {
-                let listItem = document.createElement('li');
-                listItem.textContent = title;
-                listElement.appendChild(listItem);
+                const div = document.createElement('div');
+                div.textContent = title;
+                container.appendChild(div);
             });
         }
 
-        const permutations = generatePermutations(words);
-        const productTitles = generateTitles(permutations);
-        displayTitles(productTitles);
+        const titles = generateTitles(elements);
+        displayTitles(titles.slice(0, 10));  // Menampilkan 10 contoh judul produk
     </script>
 </body>
 </html>
