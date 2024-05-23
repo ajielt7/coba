@@ -42,15 +42,15 @@
         function generateTitles(permutations) {
             let titles = [];
             permutations.forEach(permutation => {
-                let title = "Kaos kaki " + permutation[0] + " " + permutation[1];
-                for (let i = 2; i < permutation.length; i += 2) {
+                let title = "";
+                for (let i = 0; i < permutation.length; i += 2) {
                     if (i + 1 < permutation.length) {
-                        title += ", Kaos kaki " + permutation[i] + " " + permutation[i + 1];
+                        title += `Kaos kaki ${permutation[i]} ${permutation[i + 1]} `;
                     } else {
-                        title += ", Kaos kaki " + permutation[i];
+                        title += `Kaos kaki ${permutation[i]}`;
                     }
                 }
-                titles.push(title);
+                titles.push(title.trim());
             });
             return titles;
         }
