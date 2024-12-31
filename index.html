@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -45,5 +45,345 @@
         const titles = generateTitles(elements);
         displayTitles(titles.slice(0, 10));  // Menampilkan 10 contoh judul produk
     </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kombinasi Kalimat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Masukkan Kata-Kata</h1>
+    <div class="mb-3">
+      <textarea id="words-input" class="form-control" rows="5" placeholder="Masukkan kombinasi kata, satu per baris"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <button class="btn btn-primary" onclick="generateCombinations()">Generate Combinations</button>
+      <input type="file" id="file-upload" class="form-control-file mt-2"/>
+      <button class="btn btn-success mt-2" onclick="downloadExcel()">Download as Excel</button>
+    </div>
+    
+    <h2>Kombinasi Kalimat</h2>
+    <div id="combinations-container" class="mt-3 mb-5"></div>
+  </div>
+
+  <div class="container-fluid">
+    <h2>Informasi Tambahan</h2>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Strip</th>
+            <th>Kode Kategori</th>
+            <th>Berat</th>
+            <th>Kondisi</th>
+            <th>SKU</th>
+            <th>Status</th>
+            <th>Jumlah Stok</th>
+            <th>Harga</th>
+            <th>Asuransi</th>
+            <th>Foto Produk 1</th>
+            <th>Foto Produk 2</th>
+            <th>Foto Produk 3</th>
+            <th>Foto Produk 4</th>
+            <th>Foto Produk 5</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody id="additional-info-body">
+          <tr>
+            <td><input type="text" id="strip-0" class="form-control" onkeydown="moveToNextInput(event, 'category-code-0')"></td>
+            <td><input type="text" id="category-code-0" class="form-control" onkeydown="moveToNextInput(event, 'weight-0')"></td>
+            <td><input type="number" id="weight-0" class="form-control" onkeydown="moveToNextInput(event, 'condition-0')"></td>
+            <td>
+              <select id="condition-0" class="form-select" onkeydown="moveToNextInput(event, 'sku-0')">
+                <option value="Baru">Baru</option>
+                <option value="Bekas">Bekas</option>
+              </select>
+            </td>
+            <td><input type="text" id="sku-0" class="form-control" onkeydown="moveToNextInput(event, 'status-0')"></td>
+            <td>
+              <select id="status-0" class="form-select" onkeydown="moveToNextInput(event, 'stock-0')">
+                <option value="Aktif">Aktif</option>
+                <option value="Nonaktif">Nonaktif</option>
+              </select>
+            </td>
+            <td><input type="number" id="stock-0" class="form-control" onkeydown="moveToNextInput(event, 'price-0')"></td>
+            <td><input type="number" id="price-0" class="form-control" onkeydown="moveToNextInput(event, 'insurance-0')"></td>
+            <td>
+              <select id="insurance-0" class="form-select" onkeydown="moveToNextInput(event, 'photo1-0')">
+                <option value="ya">ya</option>
+                <option value="opsional">opsional</option>
+              </select>
+            </td>
+            <td><input type="text" id="photo1-0" class="form-control" onkeydown="moveToNextInput(event, 'photo2-0')"></td>
+            <td><input type="text" id="photo2-0" class="form-control" onkeydown="moveToNextInput(event, 'photo3-0')"></td>
+            <td><input type="text" id="photo3-0" class="form-control" onkeydown="moveToNextInput(event, 'photo4-0')"></td>
+            <td><input type="text" id="photo4-0" class="form-control" onkeydown="moveToNextInput(event, 'photo5-0')"></td>
+            <td><input type="text" id="photo5-0" class="form-control" onkeydown="moveToNextInput(event, 'description-0')"></td>
+            <td><textarea id="description-0" class="form-control" rows="2" onkeydown="moveToNextRow(event, 0)"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <script>
+    let workbook = null;
+
+    document.getElementById('file-upload').addEventListener('change', handleFile, false);
+
+    function handleFile(event) {
+      const reader = new FileReader();
+      const file = event.target.files[0];
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        workbook = XLSX.read(data, {type: 'array'});
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function generateCombinations() {
+      const input = document.getElementById('words-input').value;
+      const words = input.split('\n').map(word => word.trim()).filter(word => word !== "");
+      
+      const combinations = generateCombinationsWithoutStrip(words);
+      
+      displayCombinationsInHTML(combinations);
+    }
+
+    function generateCombinationsWithoutStrip(words) {
+      const combinations = [];
+    
+      for (let start = 0; start < words.length; start++) {
+        const usedWords = new Set();
+        const currentCombination = [];
+        
+        for (let i = 0; i < words.length; i++) {
+          const word = words[(start + i) % words.length];
+          if (isUniqueCombination(word, usedWords)) {
+            const parts = word.split(' ');
+            parts.forEach(part => usedWords.add(part));
+            currentCombination.push("kaos kaki " + word);
+          }
+        }
+        
+        combinations.push(currentCombination.join(' - '));
+      }
+      
+      return combinations.map(comb => ({
+        nama_produk: comb,
+        deskripsi: document.getElementById('description-0').value,
+        kode_kategori: document.getElementById('category-code-0').value,
+        berat: document.getElementById('weight-0').value,
+        kondisi: document.getElementById('condition-0').value,
+        foto_produk_1: document.getElementById('photo1-0').value,
+        foto_produk_2: document.getElementById('photo2-0').value,
+        foto_produk_3: document.getElementById('photo3-0').value,
+        foto_produk_4: document.getElementById('photo4-0').value,
+        foto_produk_5: document.getElementById('photo5-0').value,
+        SKU: document.getElementById('sku-0').value,
+        status: document.getElementById('status-0').value,
+        jumlah_stok: document.getElementById('stock-0').value,
+        harga: document.getElementById('price-0').value,
+        asuransi: document.getElementById('insurance-0').value,
+      }));
+    }
+
+    function displayCombinationsInHTML(combinations) {
+      const container = document.getElementById('combinations-container');
+      container.innerHTML = ''; // Clear previous combinations
+      combinations.forEach(combination => {
+        const label = document.createElement('label');
+        label.textContent = combination.nama_produk;
+        container.appendChild(label);
+        container.appendChild(document.createElement('br')); // Adding line break for better readability
+      });
+    }
+
+    function downloadExcel() {
+      if (!workbook) {
+        alert('Please upload an existing Excel file first.');
+        return;
+      }
+
+      const input = document.getElementById('words-input').value;
+      const words = input.split('\n').map(word => word.trim()).filter(word => word !== "");
+      
+      const stripValue = document.getElementById('strip-0').value;
+      const combinations = generateCombinationsWithStrip(words, stripValue);
+
+      // Create a new sheet for combinations if it doesn't exist
+      let worksheet = workbook.Sheets['Kombinasi'];
+      if (!worksheet) {
+        worksheet = XLSX.utils.aoa_to_sheet([[]]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Kombinasi');
+      }
+
+      // Get existing data from sheet
+      const existingData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+      
+      // Map combinations to new rows
+      const newData = combinations.map(comb => {
+        const row = [];
+        row[1] = comb.nama_produk; // B
+        row[2] = comb.deskripsi; // C
+        row[3] = comb.kode_kategori; // D
+        row[4] = comb.berat; // E
+        row[8] = comb.kondisi; // I
+        row[9] = comb.foto_produk_1; // J
+        row[10] = comb.foto_produk_2; // K
+        row[11] = comb.foto_produk_3; // L
+        row[12] = comb.foto_produk_4; // M
+        row[13] = comb.foto_produk_5; // N
+        row[17] = comb.SKU; // R
+        row[18] = comb.status; // S
+        row[19] = comb.jumlah_stok; // T
+        row[20] = comb.harga; // U
+        row[22] = comb.asuransi; // W
+        return row;
+      });
+
+      // Append new data to existing sheet
+      const updatedData = [...existingData, ...newData];
+      XLSX.utils.sheet_add_aoa(worksheet, updatedData, {origin: -1});
+
+      // Convert workbook to binary
+      const wbout = XLSX.write(workbook, {bookType: 'xlsx', type: 'binary'});
+
+      // Save as Excel file
+      const blob = new Blob([s2ab(wbout)], {type: 'application/octet-stream'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'output.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function generateCombinationsWithStrip(words, stripValue) {
+      const combinations = [];
+
+      for (let start = 0; start < words.length; start++) {
+        const usedWords = new Set();
+        const currentCombination = [];
+
+        for (let i = 0; i < words.length; i++) {
+          const word = words[(start + i) % words.length];
+          if (isUniqueCombination(word, usedWords)) {
+            const parts = word.split(' ');
+            parts.forEach(part => usedWords.add(part));
+            currentCombination.push("kaos kaki " + word);
+          }
+        }
+
+        // Add strip value at the end of the first combination
+        if (currentCombination.length > 0 && stripValue) {
+          currentCombination[0] += ` ${stripValue}`; // Append strip value at the end
+        }
+
+        combinations.push(currentCombination.join(' - '));
+      }
+
+      return combinations.map(comb => ({
+        nama_produk: comb,
+        deskripsi: document.getElementById('description-0').value,
+        kode_kategori: document.getElementById('category-code-0').value,
+        berat: document.getElementById('weight-0').value,
+        kondisi: document.getElementById('condition-0').value,
+        foto_produk_1: document.getElementById('photo1-0').value,
+        foto_produk_2: document.getElementById('photo2-0').value,
+        foto_produk_3: document.getElementById('photo3-0').value,
+        foto_produk_4: document.getElementById('photo4-0').value,
+        foto_produk_5: document.getElementById('photo5-0').value,
+        SKU: document.getElementById('sku-0').value,
+        status: document.getElementById('status-0').value,
+        jumlah_stok: document.getElementById('stock-0').value,
+        harga: document.getElementById('price-0').value,
+        asuransi: document.getElementById('insurance-0').value,
+      }));
+    }
+
+    function isUniqueCombination(word, usedWords) {
+      const parts = word.split(' ');
+      for (const part of parts) {
+        if (usedWords.has(part)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function s2ab(s) {
+      const buf = new ArrayBuffer(s.length);
+      const view = new Uint8Array(buf);
+      for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+      return buf;
+    }
+
+    function moveToNextInput(event, nextInputId) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const nextInput = document.getElementById(nextInputId);
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    }
+
+    function moveToNextRow(event, rowIndex) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const nextRowIndex = rowIndex + 1;
+        const table = document.querySelector('#additional-info-body');
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
+          <td><input type="text" id="strip-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'category-code-${nextRowIndex}')"></td>
+          <td><input type="text" id="category-code-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'weight-${nextRowIndex}')"></td>
+          <td><input type="number" id="weight-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'condition-${nextRowIndex}')"></td>
+          <td>
+            <select id="condition-${nextRowIndex}" class="form-select" onkeydown="moveToNextInput(event, 'sku-${nextRowIndex}')">
+              <option value="Baru">Baru</option>
+              <option value="Bekas">Bekas</option>
+            </select>
+          </td>
+          <td><input type="text" id="sku-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'status-${nextRowIndex}')"></td>
+          <td>
+            <select id="status-${nextRowIndex}" class="form-select" onkeydown="moveToNextInput(event, 'stock-${nextRowIndex}')">
+              <option value="Aktif">Aktif</option>
+              <option value="Nonaktif">Nonaktif</option>
+            </select>
+          </td>
+          <td><input type="number" id="stock-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'price-${nextRowIndex}')"></td>
+          <td><input type="number" id="price-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'insurance-${nextRowIndex}')"></td>
+          <td>
+            <select id="insurance-${nextRowIndex}" class="form-select" onkeydown="moveToNextInput(event, 'photo1-${nextRowIndex}')">
+              <option value="ya">ya</option>
+              <option value="opsional">opsional</option>
+            </select>
+          </td>
+          <td><input type="text" id="photo1-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'photo2-${nextRowIndex}')"></td>
+          <td><input type="text" id="photo2-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'photo3-${nextRowIndex}')"></td>
+          <td><input type="text" id="photo3-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'photo4-${nextRowIndex}')"></td>
+          <td><input type="text" id="photo4-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'photo5-${nextRowIndex}')"></td>
+          <td><input type="text" id="photo5-${nextRowIndex}" class="form-control" onkeydown="moveToNextInput(event, 'description-${nextRowIndex}')"></td>
+          <td><textarea id="description-${nextRowIndex}" class="form-control" rows="2" onkeydown="moveToNextRow(event, ${nextRowIndex})"></textarea>
+        `;
+
+        table.appendChild(newRow);
+        document.getElementById(`strip-${nextRowIndex}`).focus();
+      }
+    }
+  </script>
 </body>
 </html>
